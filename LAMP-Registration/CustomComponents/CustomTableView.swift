@@ -27,6 +27,11 @@ class CustomTableView: UITableView {
         isScrollEnabled = false
         showsVerticalScrollIndicator = false
         showsHorizontalScrollIndicator = false
+        layer.borderWidth = 0.5
+        layer.borderColor = UIColor.lightGray.cgColor
+        layer.cornerRadius = 5.0
+        clipsToBounds = true
+
     }
 }
 
