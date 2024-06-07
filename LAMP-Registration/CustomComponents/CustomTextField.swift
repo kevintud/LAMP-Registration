@@ -22,8 +22,8 @@ class CustomTextField: UITextField {
     private func configure() {
         translatesAutoresizingMaskIntoConstraints = false
         
-        layer.cornerRadius = 5
-        layer.borderWidth = 1
+        layer.cornerRadius = 3
+        layer.borderWidth = 0.5
         layer.borderColor = UIColor.lightGray.cgColor
         backgroundColor = .white
         

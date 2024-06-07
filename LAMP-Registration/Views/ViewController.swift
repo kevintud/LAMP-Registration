@@ -8,9 +8,10 @@
 import UIKit
 
 class ViewController: UIViewController {
-    var viewAction: ViewAction?
+    var viewAction: ViewActionProtocol?
     var isGuest = false
     var isMember = false
+    var clusterGroupTableViewHeightConstraint: NSLayoutConstraint?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,18 +46,21 @@ class ViewController: UIViewController {
     }
     
     private func fetchBannerImage() {
-        Network.shared.getBanner { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let image):
-                DispatchQueue.main.async {
-                    self.bannerImage.image = image
+        DispatchQueue.global(qos: .userInitiated).async {
+            Network.shared.getBanner { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let image):
+                    DispatchQueue.main.async {
+                        self.bannerImage.image = image
+                    }
+                case .failure(let error):
+                    print("Failed to fetch image with error: \(error)")
                 }
-            case .failure(let error):
-                print("Failed to fetch image with error: \(error)")
             }
         }
     }
+
     
     @objc func memberOrGuestButtonTapped() {
         viewAction?.toggleMemberOrGuestTableView()
@@ -75,6 +79,21 @@ class ViewController: UIViewController {
         viewAction?.hideAllTableViews()
     }
     
+    @objc func clusterGroupButtonTapped() {
+        viewAction?.toggleClusterGroupTableView()
+    }
+    
+    @objc func nextButtonTapped() {
+        if let userSelection = viewAction?.createUserSelection() {
+            viewAction?.validateAndNavigate(userSelection: userSelection)
+        } else {
+            // Handle the case where the user has not made all required selections
+            let alert = UIAlertController(title: "Incomplete Selection", message: "Please make all required selections before proceeding.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            present(alert, animated: true, completion: nil)
+        }
+    }
+    
     
     func setUpUI() {
         view.addSubview(contentView)
@@ -90,6 +109,7 @@ class ViewController: UIViewController {
         contentView.addSubview(memberOrGuestTableView)
         contentView.addSubview(haveAnAwtaCardTableView)
         contentView.addSubview(howToAttendTableView)
+        contentView.addSubview(clusterGroupTableView)
         
         stackView.addArrangedSubview(memberOrGuest)
         memberOrGuest.addSubview(leftView)
@@ -101,11 +121,23 @@ class ViewController: UIViewController {
         howToAttend.addSubview(howToAttendView)
         howToAttend.addSubview(howToAttendButton)
         howToAttend.addSubview(bookinCodeView)
-        howToAttend.addSubview(bookigCodeTextField)
+        howToAttend.addSubview(bookingCodeTextField)
         
         stackView.addArrangedSubview(awtaCard)
+        awtaCard.addSubview(awtaCardView)
+        awtaCard.addSubview(awtaCardTextField)
+        awtaCard.addSubview(clusterGroupView)
+        awtaCard.addSubview(selectClusterButton)
+        
+        
         stackView.addArrangedSubview(emailAddress)
+        emailAddress.addSubview(emailAddressLabel)
+        emailAddress.addSubview(emailAddressTextField)
+        
         stackView.addArrangedSubview(assitance)
+        assitance.addSubview(assistanceLabel)
+        assitance.addSubview(assistanceTextField)
+        
         stackView.addArrangedSubview(buttons)
         buttons.addSubview(nextButton)
         buttons.addSubview(progressBar)
@@ -124,8 +156,12 @@ class ViewController: UIViewController {
         rightView.isHidden = true
         rightButton.isHidden = true
         howToAttendTableView.isHidden = true
-        bookigCodeTextField.isHidden = true
+        bookingCodeTextField.isHidden = true
         bookinCodeView.isHidden = true
+        clusterGroupTableView.isHidden = true
+        
+        clusterGroupTableViewHeightConstraint = clusterGroupTableView.heightAnchor.constraint(equalToConstant: (awtaCardTextField.text?.isEmpty ?? true) ? 35 : 250)
+        NSLayoutConstraint.activate([clusterGroupTableViewHeightConstraint!])
         
         let padding: CGFloat = 10.0
         
@@ -158,11 +194,11 @@ class ViewController: UIViewController {
             bannerImage.heightAnchor.constraint(equalToConstant: 140),
             textView.heightAnchor.constraint(equalToConstant: 320),
             
-            memberOrGuest.heightAnchor.constraint(equalToConstant: 100),
+            memberOrGuest.heightAnchor.constraint(equalToConstant: 120),
             howToAttend.heightAnchor.constraint(equalToConstant: 120),
-            awtaCard.heightAnchor.constraint(equalToConstant: 200),
-            emailAddress.heightAnchor.constraint(equalToConstant: 200),
-            assitance.heightAnchor.constraint(equalToConstant: 200),
+            awtaCard.heightAnchor.constraint(equalToConstant: 120),
+            emailAddress.heightAnchor.constraint(equalToConstant: 120),
+            assitance.heightAnchor.constraint(equalToConstant: 120),
             buttons.heightAnchor.constraint(equalToConstant: 50),
             
             nextButton.topAnchor.constraint(equalTo: buttons.topAnchor),
@@ -180,7 +216,7 @@ class ViewController: UIViewController {
             leftView.leadingAnchor.constraint(equalTo: memberOrGuest.leadingAnchor),
             leftView.topAnchor.constraint(equalTo: memberOrGuest.topAnchor),
             leftView.heightAnchor.constraint(equalToConstant: 60),
-            leftView.widthAnchor.constraint(equalTo: memberOrGuest.widthAnchor, multiplier: 0.4),
+            leftView.widthAnchor.constraint(equalTo: memberOrGuest.widthAnchor, multiplier: 0.5),
             
             leftButton.leadingAnchor.constraint(equalTo: memberOrGuest.leadingAnchor, constant: 10),
             leftButton.topAnchor.constraint(equalTo: leftView.bottomAnchor),
@@ -192,7 +228,7 @@ class ViewController: UIViewController {
             memberOrGuestTableView.trailingAnchor.constraint(equalTo: leftButton.trailingAnchor),
             memberOrGuestTableView.heightAnchor.constraint(equalToConstant: 70),
             
-            rightButton.leadingAnchor.constraint(equalTo: rightView.leadingAnchor, constant: 10),
+            rightButton.leadingAnchor.constraint(equalTo: rightView.leadingAnchor ,constant: 2),
             rightButton.topAnchor.constraint(equalTo: rightView.bottomAnchor),
             rightButton.trailingAnchor.constraint(equalTo: rightView.trailingAnchor, constant: -12),
             rightButton.heightAnchor.constraint(equalToConstant: 30),
@@ -213,7 +249,7 @@ class ViewController: UIViewController {
             howToAttendView.leadingAnchor.constraint(equalTo: howToAttend.leadingAnchor),
             howToAttendView.topAnchor.constraint(equalTo: howToAttend.topAnchor),
             howToAttendView.heightAnchor.constraint(equalToConstant: 60),
-            howToAttendView.widthAnchor.constraint(equalTo: howToAttend.widthAnchor, multiplier: 0.4),
+            howToAttendView.widthAnchor.constraint(equalTo: howToAttend.widthAnchor, multiplier: 0.5),
             
             howToAttendButton.leadingAnchor.constraint(equalTo: howToAttend.leadingAnchor, constant: 10),
             howToAttendButton.topAnchor.constraint(equalTo: howToAttendView.bottomAnchor),
@@ -230,10 +266,54 @@ class ViewController: UIViewController {
             bookinCodeView.heightAnchor.constraint(equalToConstant: 60),
             bookinCodeView.trailingAnchor.constraint(equalTo: howToAttend.trailingAnchor),
             
-            bookigCodeTextField.leadingAnchor.constraint(equalTo: bookinCodeView.leadingAnchor, constant: 10),
-            bookigCodeTextField.topAnchor.constraint(equalTo: bookinCodeView.bottomAnchor),
-            bookigCodeTextField.trailingAnchor.constraint(equalTo: bookinCodeView.trailingAnchor, constant: -12),
-            bookigCodeTextField.heightAnchor.constraint(equalToConstant: 30),
+            bookingCodeTextField.leadingAnchor.constraint(equalTo: bookinCodeView.leadingAnchor, constant: 10),
+            bookingCodeTextField.topAnchor.constraint(equalTo: bookinCodeView.bottomAnchor),
+            bookingCodeTextField.trailingAnchor.constraint(equalTo: bookinCodeView.trailingAnchor, constant: -12),
+            bookingCodeTextField.heightAnchor.constraint(equalToConstant: 30),
+            
+            awtaCardView.leadingAnchor.constraint(equalTo: awtaCard.leadingAnchor),
+            awtaCardView.topAnchor.constraint(equalTo: awtaCard.topAnchor),
+            awtaCardView.heightAnchor.constraint(equalToConstant: 60),
+            awtaCardView.widthAnchor.constraint(equalTo: awtaCard.widthAnchor, multiplier: 0.5),
+            
+            awtaCardTextField.leadingAnchor.constraint(equalTo: awtaCardView.leadingAnchor, constant: 10),
+            awtaCardTextField.topAnchor.constraint(equalTo: awtaCardView.bottomAnchor),
+            awtaCardTextField.trailingAnchor.constraint(equalTo: awtaCardView.trailingAnchor, constant: -12),
+            awtaCardTextField.heightAnchor.constraint(equalToConstant: 30),
+            
+            clusterGroupView.leadingAnchor.constraint(equalTo: awtaCardView.trailingAnchor),
+            clusterGroupView.topAnchor.constraint(equalTo: awtaCard.topAnchor),
+            clusterGroupView.heightAnchor.constraint(equalToConstant: 60),
+            clusterGroupView.trailingAnchor.constraint(equalTo: awtaCard.trailingAnchor),
+            
+            selectClusterButton.leadingAnchor.constraint(equalTo: awtaCardView.trailingAnchor, constant: 2),
+            selectClusterButton.topAnchor.constraint(equalTo: awtaCardView.bottomAnchor),
+            selectClusterButton.trailingAnchor.constraint(equalTo: awtaCard.trailingAnchor, constant: -12),
+            selectClusterButton.heightAnchor.constraint(equalToConstant: 30),
+            
+            clusterGroupTableView.topAnchor.constraint(equalTo: selectClusterButton.bottomAnchor),
+            clusterGroupTableView.leadingAnchor.constraint(equalTo: selectClusterButton.leadingAnchor),
+            clusterGroupTableView.trailingAnchor.constraint(equalTo: selectClusterButton.trailingAnchor),
+
+            emailAddressLabel.topAnchor.constraint(equalTo: emailAddress.topAnchor),
+            emailAddressLabel.leadingAnchor.constraint(equalTo: emailAddress.leadingAnchor, constant: 10),
+            emailAddressLabel.trailingAnchor.constraint(equalTo: emailAddress.trailingAnchor, constant: -10),
+            emailAddressLabel.heightAnchor.constraint(equalToConstant: 77),
+            
+            emailAddressTextField.leadingAnchor.constraint(equalTo: emailAddressLabel.leadingAnchor),
+            emailAddressTextField.topAnchor.constraint(equalTo: emailAddressLabel.bottomAnchor),
+            emailAddressTextField.trailingAnchor.constraint(equalTo: emailAddress.trailingAnchor, constant: -10),
+            emailAddressTextField.heightAnchor.constraint(equalToConstant: 30),
+            
+            assistanceLabel.topAnchor.constraint(equalTo: assitance.topAnchor),
+            assistanceLabel.leadingAnchor.constraint(equalTo: assitance.leadingAnchor, constant: 10),
+            assistanceLabel.trailingAnchor.constraint(equalTo: assitance.trailingAnchor, constant: -10),
+            assistanceLabel.heightAnchor.constraint(equalToConstant: 77),
+            
+            assistanceTextField.leadingAnchor.constraint(equalTo: assistanceLabel.leadingAnchor),
+            assistanceTextField.topAnchor.constraint(equalTo: assistanceLabel.bottomAnchor),
+            assistanceTextField.trailingAnchor.constraint(equalTo: assitance.trailingAnchor, constant: -10),
+            assistanceTextField.heightAnchor.constraint(equalToConstant: 30),
             
         ])
     }
@@ -374,7 +454,7 @@ class ViewController: UIViewController {
         let view = CustomSelectionView(labelText: "Booking Code")
         return view
     }()
-    lazy var bookigCodeTextField: CustomTextField = {
+    lazy var bookingCodeTextField: CustomTextField = {
         let textField = CustomTextField(placeHolder: "Type your booking code.")
         textField.delegate = self
         return textField
@@ -389,6 +469,43 @@ class ViewController: UIViewController {
         
         return view
     }()
+    
+    lazy var awtaCardView: CustomSelectionView = {
+        let view = CustomSelectionView(labelText: "What is your AWTA card number?")
+        return view
+    }()
+    lazy var awtaCardTextField: CustomTextField = {
+        let textField = CustomTextField(placeHolder: "")
+        textField.delegate = self
+        return textField
+    }()
+    
+    
+    lazy var clusterGroupView: CustomSelectionView = {
+        let view = CustomSelectionView(labelText: "Cluster Group")
+        return view
+    }()
+    
+    lazy var selectClusterButton: CustomButton = {
+        let button = CustomButton(backgroudColor: .white, title: "Select")
+        button.layer.borderWidth = 0.5
+        button.layer.borderColor = UIColor.gray.cgColor
+        button.contentHorizontalAlignment = .left
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        button.setTitleColor(.gray, for: .normal)
+        button.addTarget(self, action: #selector(clusterGroupButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    lazy var clusterGroupTableView: CustomTableView = {
+        let tableView = CustomTableView(frame: .zero, style: .plain, cellReuseIdentifier: "clusterTableGroup")
+        tableView.isScrollEnabled = true
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(CustomTableViewCell.self, forCellReuseIdentifier: "clusterTableGroup")
+        tableView.tag = 4
+        return tableView
+    }()
+    
     lazy var emailAddress: ContainerView = {
         let view = ContainerView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -398,6 +515,17 @@ class ViewController: UIViewController {
         
         return view
     }()
+    lazy var emailAddressLabel: CustomBodyLabel = {
+        let label = CustomBodyLabel(textAlignMent: .left)
+        label.text = "Email Address (Optional)\nPlease provide the email address where you would like to receive the confirmation email."
+        return label
+    }()
+    lazy var emailAddressTextField: CustomTextField = {
+        let textField = CustomTextField(placeHolder: "")
+        textField.delegate = self
+        return textField
+    }()
+    
     lazy var assitance: ContainerView = {
         let view = ContainerView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -405,6 +533,16 @@ class ViewController: UIViewController {
         view.clipsToBounds = true
         view.layer.cornerRadius = 3
         return view
+    }()
+    lazy var assistanceLabel: CustomBodyLabel = {
+        let label = CustomBodyLabel(textAlignMent: .left)
+        label.text = "Do you need any medical assitance during the even?\nIf YES, kindly specify below. If NO, kindly put N/A."
+        return label
+    }()
+    lazy var assistanceTextField: CustomTextField = {
+        let textField = CustomTextField(placeHolder: "Please specify")
+        textField.delegate = self
+        return textField
     }()
     
     lazy var buttons: UIView = {
@@ -416,6 +554,7 @@ class ViewController: UIViewController {
     }()
     lazy var nextButton: CustomButton = {
         let button = CustomButton(backgroudColor: .white, title: "Next")
+        button.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -470,6 +609,12 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             return viewAction?.doYouHaveAnAwtaCard.count ?? 0
         case 3:
             return viewAction?.howWillYouAttend.count ?? 0
+        case 4:
+            if awtaCardTextField.text?.isEmpty ?? true {
+                return 1
+            }else {
+                return viewAction?.clusterGroup.count ?? 0
+            }
         default:
             return 0
         }
@@ -501,6 +646,17 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                 cell.configure(with: text)
             }
             return cell
+            
+        case 4:
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "clusterTableGroup", for: indexPath) as? CustomTableViewCell else {
+                return UITableViewCell()
+            }
+            if awtaCardTextField.text?.isEmpty ?? true {
+                cell.configure(with: "No Data")
+            } else if let text = viewAction?.clusterGroup[indexPath.row]{
+                cell.configure(with: text)
+            }
+            return cell
         default:
             return UITableViewCell()
         }
@@ -522,7 +678,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                 rightButton.isHidden = false
                 howToAttend.isHidden = false
                 bookinCodeView.isHidden = true
-                bookigCodeTextField.isHidden = true
+                bookingCodeTextField.isHidden = true
             } else {
                 rightView.isHidden = true
                 rightButton.isHidden = true
@@ -558,11 +714,22 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             
             if isGuest && selectedOption == "Hybrid" {
                 bookinCodeView.isHidden = false
-                bookigCodeTextField.isHidden = false
+                bookingCodeTextField.isHidden = false
             } else {
                 bookinCodeView.isHidden = true
-                bookigCodeTextField.isHidden = true
+                bookingCodeTextField.isHidden = true
             }
+            
+        case 4:
+            if awtaCardTextField.text?.isEmpty ?? true {
+                return
+            } else {
+                let selectedOption = viewAction?.clusterGroup[indexPath.row]
+                clusterGroupTableView.isHidden = true
+                selectClusterButton.setTitle(selectedOption, for: .normal)
+                selectClusterButton.setTitleColor(.black, for: .normal)
+            }
+            
          
         default:
             break
@@ -576,5 +743,20 @@ extension ViewController: UITextFieldDelegate {
         textField.resignFirstResponder()
         return true
     }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if textField == awtaCardTextField {
+            clusterGroupTableView.reloadData()
+            if textField.text?.isEmpty ?? true {
+                clusterGroupTableViewHeightConstraint?.constant = 35
+                selectClusterButton.setTitle("Select", for: .normal)
+                selectClusterButton.setTitleColor(.gray, for: .normal)
+            } else {
+                clusterGroupTableViewHeightConstraint?.constant = 250
+            }
+            view.layoutIfNeeded() // Update layout to reflect the change
+        }
+    }
+
 }
 
