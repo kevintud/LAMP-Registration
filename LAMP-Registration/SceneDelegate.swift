@@ -22,7 +22,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let action = ViewAction(vc: viewController)
         viewController.viewAction = action
-        window?.rootViewController = viewController
+        
+        let navigationController = UINavigationController(rootViewController: viewController)
+        window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
         
     }

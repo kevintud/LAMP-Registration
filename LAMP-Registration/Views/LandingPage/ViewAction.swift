@@ -22,6 +22,8 @@ protocol ViewActionProtocol {
     var doYouHaveAnAwtaCard: [String] { get }
     var howWillYouAttend: [String] { get }
     var clusterGroup: [String] { get }
+    
+    func alreadyRegister(view: UIViewController)
 }
 class ViewAction: ViewActionProtocol {
     weak var viewController: ViewController?
@@ -199,6 +201,13 @@ class ViewAction: ViewActionProtocol {
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             viewController.present(alert, animated: true, completion: nil)
         }
+    }
+    
+    func alreadyRegister(view: UIViewController) {
+        let vc = ManageBookingViewController()
+        let action = ManageBookingAction(manageBookingController: vc)
+        view.navigationController?.setNavigationBarHidden(false, animated: false)
+        view.navigationController?.pushViewController(vc, animated: true)
     }
 }
 

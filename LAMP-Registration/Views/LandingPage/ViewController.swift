@@ -9,28 +9,34 @@ import UIKit
 
 class ViewController: UIViewController {
     var viewAction: ViewActionProtocol?
+    
     var isGuest = false
     var isMember = false
     var clusterGroupTableViewHeightConstraint: NSLayoutConstraint?
-    
+    let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboardAndTableViews))
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(red: 232/255.0, green: 232/255.0, blue: 232/255.0, alpha:1)
+        view.backgroundColor = UIColor(red: 232/255.0, green: 232/255.0, blue: 232/255.0, alpha: 1)
         setUpUI()
         fetchBannerImage()
+
         // Add tap gesture recognizer to dismiss keyboard and table views
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboardAndTableViews))
         tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
         setupKeyboardObservers()
     }
-    
-    ///private method
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: true)
+    }
+
+    // private method
     private func setupKeyboardObservers() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
-    
+
     @objc private func keyboardWillShow(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
@@ -40,11 +46,11 @@ class ViewController: UIViewController {
         let keyboardHeight = keyboardFrame.height
         scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
     }
-    
+
     @objc private func keyboardWillHide(_ notification: Notification) {
         scrollView.contentInset = .zero
     }
-    
+
     private func fetchBannerImage() {
         DispatchQueue.global(qos: .userInitiated).async {
             Network.shared.getBanner { [weak self] result in
@@ -61,28 +67,32 @@ class ViewController: UIViewController {
         }
     }
 
-    
+    @objc func manageBookingButtonTapped() {
+        print("Manage Booking Button TTapped")
+        viewAction?.alreadyRegister(view: self)
+    }
+
     @objc func memberOrGuestButtonTapped() {
         viewAction?.toggleMemberOrGuestTableView()
     }
-    
+
     @objc func rightButtonTapped() {
         viewAction?.toggleHaveAnAwtaCardTableView()
     }
-    
+
     @objc func howToAttendButtonTapped() {
         viewAction?.toggleHowToAttendTableView()
     }
-    
+
     @objc func dismissKeyboardAndTableViews() {
         view.endEditing(true)
         viewAction?.hideAllTableViews()
     }
-    
+
     @objc func clusterGroupButtonTapped() {
         viewAction?.toggleClusterGroupTableView()
     }
-    
+
     @objc func nextButtonTapped() {
         if let userSelection = viewAction?.createUserSelection() {
             viewAction?.validateAndNavigate(userSelection: userSelection)
@@ -93,18 +103,15 @@ class ViewController: UIViewController {
             present(alert, animated: true, completion: nil)
         }
     }
-    
-    
+
     func setUpUI() {
         view.addSubview(contentView)
+        view.addSubview(bottomView) // Add bottomView to the main view first
         contentView.addSubview(scrollView)
         scrollView.addSubview(stackView)
         
         stackView.addArrangedSubview(bannerImage)
-        
         stackView.addArrangedSubview(textView)
-        
-
         
         contentView.addSubview(memberOrGuestTableView)
         contentView.addSubview(haveAnAwtaCardTableView)
@@ -129,7 +136,6 @@ class ViewController: UIViewController {
         awtaCard.addSubview(clusterGroupView)
         awtaCard.addSubview(selectClusterButton)
         
-        
         stackView.addArrangedSubview(emailAddress)
         emailAddress.addSubview(emailAddressLabel)
         emailAddress.addSubview(emailAddressTextField)
@@ -143,7 +149,6 @@ class ViewController: UIViewController {
         buttons.addSubview(progressBar)
         buttons.addSubview(pageLabel)
         
-        contentView.addSubview(bottomView)
         bottomView.addArrangedSubview(alreadyRegisteredLabel)
         bottomView.addArrangedSubview(manageBookingButton)
         
@@ -172,11 +177,6 @@ class ViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: bottomView.topAnchor),
             
-            // Constraints for bottomView
-            bottomView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            bottomView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            bottomView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            bottomView.heightAnchor.constraint(equalToConstant: 50),
             
             // Constraints for scrollView
             scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -243,9 +243,7 @@ class ViewController: UIViewController {
             rightView.heightAnchor.constraint(equalToConstant: 60),
             rightView.trailingAnchor.constraint(equalTo: memberOrGuest.trailingAnchor),
             
-            
-            //howtoattend view
-            
+            // howToAttend view
             howToAttendView.leadingAnchor.constraint(equalTo: howToAttend.leadingAnchor),
             howToAttendView.topAnchor.constraint(equalTo: howToAttend.topAnchor),
             howToAttendView.heightAnchor.constraint(equalToConstant: 60),
@@ -294,7 +292,7 @@ class ViewController: UIViewController {
             clusterGroupTableView.topAnchor.constraint(equalTo: selectClusterButton.bottomAnchor),
             clusterGroupTableView.leadingAnchor.constraint(equalTo: selectClusterButton.leadingAnchor),
             clusterGroupTableView.trailingAnchor.constraint(equalTo: selectClusterButton.trailingAnchor),
-
+            
             emailAddressLabel.topAnchor.constraint(equalTo: emailAddress.topAnchor),
             emailAddressLabel.leadingAnchor.constraint(equalTo: emailAddress.leadingAnchor, constant: 10),
             emailAddressLabel.trailingAnchor.constraint(equalTo: emailAddress.trailingAnchor, constant: -10),
@@ -315,22 +313,32 @@ class ViewController: UIViewController {
             assistanceTextField.trailingAnchor.constraint(equalTo: assitance.trailingAnchor, constant: -10),
             assistanceTextField.heightAnchor.constraint(equalToConstant: 30),
             
+            alreadyRegisteredLabel.widthAnchor.constraint(equalTo: bottomView.widthAnchor, multiplier: 0.5), // Adjust multiplier as needed
+            manageBookingButton.widthAnchor.constraint(equalTo: bottomView.widthAnchor, multiplier: 0.5),  // Adjust multiplier as needed
+            
+            bottomView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            bottomView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            bottomView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            bottomView.heightAnchor.constraint(equalToConstant: 50),
         ])
+        
+        // Ensure bottomView is brought to the front
+        view.bringSubviewToFront(bottomView)
     }
-    
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         scrollView.contentSize = CGSize(width: scrollView.frame.width, height: stackView.frame.height)
     }
-    
-    ///Getter & Setter
+
+    // Getter & Setter
     
     lazy var bannerImage: CustomImageView = {
         let imageView = CustomImageView(frame: .zero)
         imageView.contentMode = .scaleToFill
         return imageView
     }()
+    
     lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -338,15 +346,16 @@ class ViewController: UIViewController {
         scrollView.backgroundColor = UIColor(red: 232/255.0, green: 232/255.0, blue: 232/255.0, alpha: 1)
         return scrollView
     }()
+    
     lazy var stackView: CustomStackView = {
         let stackView = CustomStackView()
         stackView.spacing = 10
         return stackView
     }()
+    
     lazy var contentView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        
         return view
     }()
     
@@ -354,7 +363,6 @@ class ViewController: UIViewController {
         let textView = CustomTextView()
         return textView
     }()
-
     
     lazy var memberOrGuest: UIView = {
         let view = UIView()
@@ -362,7 +370,6 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         view.clipsToBounds = true
         view.layer.cornerRadius = 3
-        
         return view
     }()
     
@@ -381,6 +388,7 @@ class ViewController: UIViewController {
         button.addTarget(self, action: #selector(memberOrGuestButtonTapped), for: .touchUpInside)
         return button
     }()
+    
     lazy var memberOrGuestTableView: CustomTableView = {
         let tableView = CustomTableView(frame: .zero, style: .plain, cellReuseIdentifier: "memberOrGuestCell")
         tableView.dataSource = self
@@ -396,7 +404,6 @@ class ViewController: UIViewController {
     }()
     
     lazy var rightButton: CustomButton = {
-        
         let button = CustomButton(backgroudColor: .white, title: "Choose")
         button.layer.borderWidth = 0.5
         button.layer.borderColor = UIColor.gray.cgColor
@@ -415,7 +422,6 @@ class ViewController: UIViewController {
         tableView.tag = 2
         return tableView
     }()
-    
     
     lazy var howToAttend: ContainerView = {
         let view = ContainerView()
@@ -441,6 +447,7 @@ class ViewController: UIViewController {
         button.addTarget(self, action: #selector(howToAttendButtonTapped), for: .touchUpInside)
         return button
     }()
+    
     lazy var howToAttendTableView: CustomTableView = {
         let tableView = CustomTableView(frame: .zero, style: .plain, cellReuseIdentifier: "howToAttendCell")
         tableView.dataSource = self
@@ -454,11 +461,15 @@ class ViewController: UIViewController {
         let view = CustomSelectionView(labelText: "Booking Code")
         return view
     }()
+    
     lazy var bookingCodeTextField: CustomTextField = {
         let textField = CustomTextField(placeHolder: "Type your booking code.")
         textField.delegate = self
         return textField
     }()
+    
+   
+
     
     lazy var awtaCard: ContainerView = {
         let view = ContainerView()
@@ -466,7 +477,6 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         view.clipsToBounds = true
         view.layer.cornerRadius = 3
-        
         return view
     }()
     
@@ -474,12 +484,12 @@ class ViewController: UIViewController {
         let view = CustomSelectionView(labelText: "What is your AWTA card number?")
         return view
     }()
+    
     lazy var awtaCardTextField: CustomTextField = {
         let textField = CustomTextField(placeHolder: "")
         textField.delegate = self
         return textField
     }()
-    
     
     lazy var clusterGroupView: CustomSelectionView = {
         let view = CustomSelectionView(labelText: "Cluster Group")
@@ -496,6 +506,7 @@ class ViewController: UIViewController {
         button.addTarget(self, action: #selector(clusterGroupButtonTapped), for: .touchUpInside)
         return button
     }()
+    
     lazy var clusterGroupTableView: CustomTableView = {
         let tableView = CustomTableView(frame: .zero, style: .plain, cellReuseIdentifier: "clusterTableGroup")
         tableView.isScrollEnabled = true
@@ -512,14 +523,15 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         view.clipsToBounds = true
         view.layer.cornerRadius = 3
-        
         return view
     }()
+    
     lazy var emailAddressLabel: CustomBodyLabel = {
         let label = CustomBodyLabel(textAlignMent: .left)
         label.text = "Email Address (Optional)\nPlease provide the email address where you would like to receive the confirmation email."
         return label
     }()
+    
     lazy var emailAddressTextField: CustomTextField = {
         let textField = CustomTextField(placeHolder: "")
         textField.delegate = self
@@ -534,11 +546,13 @@ class ViewController: UIViewController {
         view.layer.cornerRadius = 3
         return view
     }()
+    
     lazy var assistanceLabel: CustomBodyLabel = {
         let label = CustomBodyLabel(textAlignMent: .left)
         label.text = "Do you need any medical assitance during the even?\nIf YES, kindly specify below. If NO, kindly put N/A."
         return label
     }()
+    
     lazy var assistanceTextField: CustomTextField = {
         let textField = CustomTextField(placeHolder: "Please specify")
         textField.delegate = self
@@ -548,10 +562,10 @@ class ViewController: UIViewController {
     lazy var buttons: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(red: 232/255.0, green: 232/255.0, blue: 232/255.0, alpha:1)
-        
+        view.backgroundColor = UIColor(red: 232/255.0, green: 232/255.0, blue: 232/255.0, alpha: 1)
         return view
     }()
+    
     lazy var nextButton: CustomButton = {
         let button = CustomButton(backgroudColor: .white, title: "Next")
         button.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
@@ -586,7 +600,6 @@ class ViewController: UIViewController {
         let label = CustomBodyLabel(textAlignMent: .right)
         label.text = "Already registered?"
         label.font = UIFont.systemFont(ofSize: 11)
-        
         return label
     }()
     
@@ -595,9 +608,10 @@ class ViewController: UIViewController {
         button.setTitleColor(UIColor(red: 100/255, green: 186/255, blue: 180/255, alpha: 1), for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 11)
         button.contentHorizontalAlignment = .left
+        button.addTarget(self, action: #selector(manageBookingButtonTapped), for: .touchUpInside)
+        print("Manage Booking Button Initialized") // Debugging print statement
         return button
     }()
-    
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
@@ -612,7 +626,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         case 4:
             if awtaCardTextField.text?.isEmpty ?? true {
                 return 1
-            }else {
+            } else {
                 return viewAction?.clusterGroup.count ?? 0
             }
         default:
@@ -646,14 +660,13 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                 cell.configure(with: text)
             }
             return cell
-            
         case 4:
             guard let cell = tableView.dequeueReusableCell(withIdentifier: "clusterTableGroup", for: indexPath) as? CustomTableViewCell else {
                 return UITableViewCell()
             }
             if awtaCardTextField.text?.isEmpty ?? true {
                 cell.configure(with: "No Data")
-            } else if let text = viewAction?.clusterGroup[indexPath.row]{
+            } else if let text = viewAction?.clusterGroup[indexPath.row] {
                 cell.configure(with: text)
             }
             return cell
@@ -688,7 +701,6 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                 awtaCard.isHidden = true
                 emailAddress.isHidden = true
                 assitance.isHidden = true
-                
             }
         case 2:
             let selectedOption = viewAction?.doYouHaveAnAwtaCard[indexPath.row]
@@ -729,13 +741,10 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
                 selectClusterButton.setTitle(selectedOption, for: .normal)
                 selectClusterButton.setTitleColor(.black, for: .normal)
             }
-            
-         
         default:
             break
         }
     }
-
 }
 
 extension ViewController: UITextFieldDelegate {
@@ -757,6 +766,4 @@ extension ViewController: UITextFieldDelegate {
             view.layoutIfNeeded() // Update layout to reflect the change
         }
     }
-
 }
-

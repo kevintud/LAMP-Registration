@@ -52,6 +52,8 @@
 		0A8B95DF2C0F455500E84B71 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8B95DC2C0F455500E84B71 /* Network.swift */; };
 		0A8B95E22C0F499800E84B71 /* CustomTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8B95E12C0F499800E84B71 /* CustomTableView.swift */; };
 		0A8B95E42C0F49C900E84B71 /* CustomImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8B95E32C0F49C900E84B71 /* CustomImageView.swift */; };
+		0A955B2A2C1D98470048F545 /* ManageBookingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A955B292C1D98470048F545 /* ManageBookingViewController.swift */; };
+		0A955B2C2C1D98570048F545 /* ManageBookingAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A955B2B2C1D98570048F545 /* ManageBookingAction.swift */; };
 		0AEE82BC2C1181B700262C12 /* CustomTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEE82BB2C1181B700262C12 /* CustomTextView.swift */; };
 /* End PBXBuildFile section */
 
@@ -103,6 +105,8 @@
 		0A8B95DC2C0F455500E84B71 /* Network.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
 		0A8B95E12C0F499800E84B71 /* CustomTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTableView.swift; sourceTree = "<group>"; };
 		0A8B95E32C0F49C900E84B71 /* CustomImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomImageView.swift; sourceTree = "<group>"; };
+		0A955B292C1D98470048F545 /* ManageBookingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageBookingViewController.swift; sourceTree = "<group>"; };
+		0A955B2B2C1D98570048F545 /* ManageBookingAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageBookingAction.swift; sourceTree = "<group>"; };
 		0AEE82BB2C1181B700262C12 /* CustomTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTextView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -269,10 +273,28 @@
 		0A8B95E52C0F4A9000E84B71 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				0A955B282C1D982E0048F545 /* ManageBooking */,
+				0A955B272C1D98210048F545 /* LandingPage */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0A955B272C1D98210048F545 /* LandingPage */ = {
+			isa = PBXGroup;
+			children = (
 				0A0737B02C0EE9E200535E71 /* ViewController.swift */,
 				0A0255D92C10814900C0B615 /* ViewAction.swift */,
 			);
-			path = Views;
+			path = LandingPage;
+			sourceTree = "<group>";
+		};
+		0A955B282C1D982E0048F545 /* ManageBooking */ = {
+			isa = PBXGroup;
+			children = (
+				0A955B292C1D98470048F545 /* ManageBookingViewController.swift */,
+				0A955B2B2C1D98570048F545 /* ManageBookingAction.swift */,
+			);
+			path = ManageBooking;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -366,6 +388,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				0A0737C52C0F2C8500535E71 /* CustomStackView.swift in Sources */,
+				0A955B2A2C1D98470048F545 /* ManageBookingViewController.swift in Sources */,
+				0A955B2C2C1D98570048F545 /* ManageBookingAction.swift in Sources */,
 				0A8B95E22C0F499800E84B71 /* CustomTableView.swift in Sources */,
 				0AEE82BC2C1181B700262C12 /* CustomTextView.swift in Sources */,
 				0A0737C42C0F2C8500535E71 /* CustomButton.swift in Sources */,
@@ -538,6 +562,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -564,6 +589,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
